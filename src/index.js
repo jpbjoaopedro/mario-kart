@@ -39,6 +39,8 @@ async function getRandomBlock() {
 }
 
 async function playRaceEngine(character1, character2) {
+    let roundSeparate = '\n----------------------------------------------------------------';
+
     for (let round = 1; round <= 5; round++) {
         console.log(
             `🏁 Rodada ${round}`
@@ -72,7 +74,9 @@ async function playRaceEngine(character1, character2) {
                 diceResult2,
                 character2.VELOCIDADE
             );
-            
+
+            character1.PONTOS += totalTestSkill1 > totalTestSkill2 ? 1 : 0;
+            character2.PONTOS += totalTestSkill1 < totalTestSkill2 ? 1 : 0;   
         };
 
         if(block == "CURVA") {
@@ -91,15 +95,50 @@ async function playRaceEngine(character1, character2) {
                 diceResult2,
                 character2.MANOBRABILIDADE
             );
+
+            character1.PONTOS += totalTestSkill1 > totalTestSkill2 ? 1 : 0;
+            character2.PONTOS += totalTestSkill1 < totalTestSkill2 ? 1 : 0;
         };
 
-        if(block == "CONFRONTO") {
+        if(block == 'CONFRONTO') {
+            // resultado dos dados
             powerResult1 = character1.PODER + diceResult1;
             powerResult2 = character2.PODER + diceResult2;
 
+            console.log(`${character1.NOME} confrontou com ${character2.NOME} `);
+            
+            // Imprimindo o resultado dos dados
+            await logRollResult(
+                character1.NOME, 
+                "poder",
+                diceResult1,
+                character1.PODER
+            );
+            await logRollResult(
+                character2.NOME, 
+                "poder",
+                diceResult2,
+                character2.PODER
+            );
 
+            // verificando o vencedor do confronto
+            if (powerResult1 > powerResult2) {
+                console.log(`${character1.NOME} venceu o confroto! ${character1.NOME} perdeu 1 ponto 🐢`);
+                
+                // retirando pontos do perdedor da rodada
+                character2.PONTOS -= character2.PONTOS == 0 ? 0 : 1;
+                
+            }else if (powerResult1 < powerResult2) {
+                console.log(`${character2.NOME} venceu o confroto! ${character1.NOME} perdeu 1 ponto 🐢`);
+
+                // retirando pontos do perdedor da rodada
+                character1.PONTOS -= character1.PONTOS == 0 ? 0 : 1;
+            }else {
+                console.log('EMPATE 😱 Ninguém perdeu ponto!')
+            };
 
         };
+        console.log(roundSeparate)
     };
 };
 
@@ -107,10 +146,25 @@ async function logRollResult(characterName, block, diceResult, attribute) {
     console.log(`${characterName} 🎲 rolou o dado de ${block} ${diceResult} + ${attribute} = ${diceResult + attribute}`);
 };
 
+async function declareWinner(character1, character2) {
+    console.log("Resultado final: ")
+    console.log(`${character1.NOME}: ${character1.PONTOS} ponto(s)`)
+    console.log(`${character2.NOME}: ${character2.PONTOS} ponto(s)`)
+
+    if (character1.PONTOS > character2.PONTOS) {
+        console.log(`${character1.NOME} foi o vencedor da corrida! 🏆`)
+    } else if (character1.PONTOS < character2.PONTOS) {
+        console.log(`${character2.NOME} foi o vencedor da corrida! 🏆`)
+    } else {
+        console.log(`Os jogadores ${character1.NOME} e ${character2.NOME} empataram!`)
+    }
+};
+
 (async function main() {
     console.log(
-        `🏁🚨 Corrida entre ${player1.NOME} e ${player2.NOME} começando...`
-    )
+        `🏁🚨 Corrida entre ${player1.NOME} e ${player2.NOME} começando...\n`
+    );
 
-    await playRaceEngine(player1, player2)
+    await playRaceEngine(player1, player2);
+    await declareWinner(player1, player2);
 })()
